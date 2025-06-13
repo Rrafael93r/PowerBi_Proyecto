@@ -3,7 +3,7 @@ import imgbitacora from "../assets/BITACORAIMG.png"
 import imgmesadeayuda from "../assets/MESADEAYUDA.png"
 import imgmodems from "../assets/MODEMSIMG.png"
 import flechaatras from "../assets/FLECHA-ATRAS.png"
-import fondonarnaja from "../assets/fondo.png"
+import fondonarnaja from "../assets/Circuitos Contrastantes en Naranja y Azul.png"
 import "bootstrap/dist/css/bootstrap.min.css"
 import { Link } from "react-router-dom"
 
