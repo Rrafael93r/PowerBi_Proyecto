@@ -25,11 +25,5 @@ export default class RolesController {
         await role.save()
         return response.ok(role)
     }
-    async destroy({ params, response }: HttpContext) {
-        const role = await Role.find(params.id)
-        if (!role) return response.notFound({ mensaje: 'Rol no encontrado' })
-        await role.delete()
-        return response.ok({ mensaje: 'Rol eliminado' })
-    }
 
 }

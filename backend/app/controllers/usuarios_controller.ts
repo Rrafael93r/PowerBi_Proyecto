@@ -28,10 +28,4 @@ export default class UsuarioController {
     return response.ok(usuario)
   }
 
-  async destroy({ params, response }: HttpContext) {
-    const usuario = await Usuario.find(params.id)
-    if (!usuario) return response.notFound({ mensaje: 'Usuario no encontrado' })
-    await usuario.delete()
-    return response.ok({ mensaje: 'Usuario eliminado' })
-  }
 }

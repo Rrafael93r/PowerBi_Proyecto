@@ -3,11 +3,41 @@
 import type React from "react"
 import Fondo from "../assets/fondo.png"
 import LogoPharmaserv from "../assets/pharmaser.png"
+import { useState } from "react"
+
+
+
 
 const Login = () => {
+    const [usuario, setUsuario] = useState('')
+    const [contrasena, setContrasena] = useState('')
+    const [error, setError] = useState('')
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
+        setError('')
+
+        try {
+            const res = await fetch('http://localhost:3333/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ usuario, contrasena }),
+            })
+
+            const data = await res.json()
+
+            if (!res.ok) {
+                setError(data.message || 'Error en login')
+                return
+            }
+
+            console.log('Login exitoso', data)
+            // Aquí puedes redirigir o guardar el usuario en localStorage/context
+        } catch (err) {
+            setError('No se pudo conectar al servidor')
+        }
     }
+
 
     return (
         <div className="bg-dark min-vh-100 d-flex align-items-center justify-content-center position-relative">
@@ -26,7 +56,6 @@ const Login = () => {
                                     className="img-fluid"
                                     style={{ maxHeight: "80px", maxWidth: "200px" }}
                                 />
-
                             </div>
 
                             {/* Form body */}
@@ -48,10 +77,12 @@ const Login = () => {
                                                 </svg>
                                             </span>
                                             <input
-                                                type="email"
+                                                type="text"
                                                 id="email"
-                                                className="form-control bg-dark bg-opacity-75 border-primary border-opacity-75 text-white fs-6"
-                                                placeholder="Ingresa tu email"
+                                                className="form-control ..."
+                                                placeholder="Ingresa tu usuario"
+                                                value={usuario}
+                                                onChange={(e) => setUsuario(e.target.value)}
                                                 required
                                             />
                                         </div>
@@ -75,8 +106,10 @@ const Login = () => {
                                             <input
                                                 type="password"
                                                 id="password"
-                                                className="form-control bg-dark bg-opacity-75 border-primary border-opacity-75 text-white fs-6"
+                                                className="form-control ..."
                                                 placeholder="Ingresa tu contraseña"
+                                                value={contrasena}
+                                                onChange={(e) => setContrasena(e.target.value)}
                                                 required
                                             />
                                         </div>
@@ -110,6 +143,7 @@ const Login = () => {
                                             </svg>
                                             Iniciar Sesión
                                         </button>
+                                        {error && <p className="text-danger">{error}</p>}
                                     </div>
 
                                 </form>
