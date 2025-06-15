@@ -36,8 +36,8 @@ export default class Usuario extends BaseModel {
   @column({ serializeAs: null })
   public contrasena!: string
 
-  @column()
-  public id_rol!: number
+  @column({ columnName: 'role_id' })
+  public roleId!: number
 
   @belongsTo(() => Role)
   public role!: BelongsTo<typeof Role>

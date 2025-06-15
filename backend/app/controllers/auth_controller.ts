@@ -27,7 +27,7 @@ export default class AuthController {
         id: user.id,
         nombre: user.nombre,
         usuario: user.usuario,
-        rol: user.role.name, // si usas preload
+        rol: user.role.name, 
         estado: user.estado,
         visualizacion: user.visualizacion,
       },

@@ -8,7 +8,18 @@ export default class UsuarioController {
   }
 
   async store({ request, response }: HttpContext) {
-    const data = request.only(['nombre', 'contrasena', 'correo', 'rol', 'estado', 'visualizacion'])
+    const data = request.only([
+      'nombre',
+      'segundo_nombre',
+      'apellido_1',
+      'apellido_2',
+      'usuario',
+      'contrasena',
+      'correo',
+      'roleId',
+      'estado',
+      'visualizacion'
+    ])
     const usuario = await Usuario.create(data)
     return response.created(usuario)
   }
@@ -22,7 +33,16 @@ export default class UsuarioController {
   async update({ params, request, response }: HttpContext) {
     const usuario = await Usuario.find(params.id)
     if (!usuario) return response.notFound({ mensaje: 'Usuario no encontrado' })
-    const data = request.only(['nombre', 'contrasena', 'correo', 'rol', 'estado', 'visualizacion'])
+    const data = request.only(['nombre',
+      'segundo_nombre',
+      'apellido_1',
+      'apellido_2',
+      'usuario',
+      'contrasena',
+      'correo',
+      'roleId', 
+      'estado',
+      'visualizacion'])
     usuario.merge(data)
     await usuario.save()
     return response.ok(usuario)
