@@ -17,8 +17,8 @@ export default class UsuarioController {
       'contrasena',
       'correo',
       'roleId',
-      'estado',
-      'visualizacion'
+      'areaId',
+      'estadoId'
     ])
     const usuario = await Usuario.create(data)
     return response.created(usuario)
@@ -34,15 +34,17 @@ export default class UsuarioController {
     const usuario = await Usuario.find(params.id)
     if (!usuario) return response.notFound({ mensaje: 'Usuario no encontrado' })
     const data = request.only(['nombre',
+      'nombre',
       'segundo_nombre',
       'apellido_1',
       'apellido_2',
       'usuario',
       'contrasena',
       'correo',
-      'roleId', 
-      'estado',
-      'visualizacion'])
+      'roleId',
+      'areaId',
+      'estadoId'
+    ])
     usuario.merge(data)
     await usuario.save()
     return response.ok(usuario)

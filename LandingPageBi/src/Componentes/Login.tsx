@@ -3,10 +3,8 @@
 import type React from "react"
 import { useState } from "react"
 import { useNavigate } from "react-router-dom" // ✅ Importar useNavigate
-
-// Importa tus imágenes aquí
-// import Fondo from "../assets/fondo.png"
-// import LogoPharmaserv from "../assets/pharmaser.png"
+import Fondo from "../assets/fondo.png"
+import LogoPharmaserv from "../assets/pharmaser.png"
 
 interface LoginResponse {
   mensaje: string
@@ -26,7 +24,7 @@ const Login = () => {
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
 
-  const navigate = useNavigate() // ✅ Hook para navegación
+  const navigate = useNavigate()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -49,11 +47,10 @@ const Login = () => {
 
       console.log("Login exitoso", data)
 
-      // ✅ Guardar datos del usuario en localStorage
       localStorage.setItem("user", JSON.stringify(data.usuario))
       localStorage.setItem("token", "logged-in")
 
-      // ✅ Redirigir a selección de área
+
       navigate("/seleccion-area")
     } catch (err) {
       console.error("Error de conexión:", err)
@@ -68,7 +65,7 @@ const Login = () => {
       <div
         className="position-absolute top-0 start-0 w-100 h-100 overflow-hidden"
         style={{
-          backgroundImage: `url(/placeholder.svg?height=1080&width=1920)`, // Reemplaza con tu imagen
+          backgroundImage: `url(${Fondo})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
@@ -83,7 +80,7 @@ const Login = () => {
               {/* Header with logo */}
               <div className="card-header bg-transparent border-primary border-opacity-50 text-center py-4">
                 <img
-                  src="/placeholder.svg?height=80&width=200"
+                  src={LogoPharmaserv}
                   alt="Pharmaserv Logo"
                   className="img-fluid"
                   style={{ maxHeight: "80px", maxWidth: "200px" }}

@@ -27,9 +27,9 @@ export default class AuthController {
         id: user.id,
         nombre: user.nombre,
         usuario: user.usuario,
-        rol: user.role.name, 
-        estado: user.estado,
-        visualizacion: user.visualizacion,
+        rol: user.role.name,
+        estado: user.estado.name,
+        area: user.area.name,
       },
     })
   }

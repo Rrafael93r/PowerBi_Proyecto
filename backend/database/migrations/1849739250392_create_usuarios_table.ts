@@ -20,11 +20,23 @@ export default class extends BaseSchema {
         .inTable('roles')
         .onDelete('CASCADE')
         .notNullable()
-      table.string('estado', 50).nullable().defaultTo('activo')
-      table.string('visualizacion', 50).nullable().defaultTo('todos')
 
-      table.timestamp('created_at').nullable()
-      table.timestamp('updated_at').nullable()
+      table.integer('estado_id')
+        .unsigned()
+        .references('id')
+        .inTable('estados')
+        .onDelete('CASCADE')
+        .notNullable()
+
+      table.integer('area_id')
+        .unsigned()
+        .references('id')
+        .inTable('areas')
+        .onDelete('CASCADE')
+        .notNullable()
+
+      table.datetime('created_at').notNullable().defaultTo(this.now())
+      table.datetime('updated_at').notNullable().defaultTo(this.now())
     })
   }
 

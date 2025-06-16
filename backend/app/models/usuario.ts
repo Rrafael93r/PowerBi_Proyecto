@@ -9,6 +9,8 @@ import {
 
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import Role from '../models/role.js'
+import Area from '../models/area.js'
+import Estado from '../models/estado.js'
 
 export default class Usuario extends BaseModel {
   @column({ isPrimary: true })
@@ -42,11 +44,17 @@ export default class Usuario extends BaseModel {
   @belongsTo(() => Role)
   public role!: BelongsTo<typeof Role>
 
-  @column()
-  public estado!: string
+  @column({ columnName: 'estado_id' })
+  public estadoId!: number
 
-  @column()
-  public visualizacion!: string
+  @belongsTo(() => Estado)
+  public estado!: BelongsTo<typeof Estado>
+
+  @column({ columnName: 'area_id' })
+  public areaId!: number
+
+  @belongsTo(() => Area)
+  public area!: BelongsTo<typeof Area>
 
   @column.dateTime({ autoCreate: true })
   public createdAt!: DateTime
