@@ -32,20 +32,12 @@ const Login = () => {
 
       console.log("Login exitoso", data)
 
-      // Redirigir según el rol/área del usuario
       const user = data.usuario
 
-      // Si es administrador, puede ir a selección de área
       if (user.role?.name?.toLowerCase() === "administrador") {
         navigate("/seleccion-area")
       }
-      // Si tiene área específica, ir directamente a su dashboard
-      else if (user.area?.name?.toLowerCase().includes("tecnologia")) {
-        navigate("/dashboard-Tic")
-      } else if (user.area?.name?.toLowerCase().includes("operaciones")) {
-        navigate("/dashboard-operaciones")
-      }
-      // Por defecto, ir a selección de área
+
       else {
         navigate("/seleccion-area")
       }
