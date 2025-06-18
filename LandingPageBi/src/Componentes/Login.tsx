@@ -1,22 +1,11 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
-import { useNavigate } from "react-router-dom" // ✅ Importar useNavigate
+import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
+import { authService } from "../Servicios/auth"
 import Fondo from "../assets/fondo.png"
 import LogoPharmaserv from "../assets/pharmaser.png"
-
-interface LoginResponse {
-  mensaje: string
-  usuario: {
-    id: number
-    nombre: string
-    usuario: string
-    rol: string
-    estado: string
-    visualizacion: string
-  }
-}
 
 const Login = () => {
   const [usuario, setUsuario] = useState("")
@@ -26,35 +15,43 @@ const Login = () => {
 
   const navigate = useNavigate()
 
+  // Verificar si ya está autenticado
+  useEffect(() => {
+    if (authService.isAuthenticated()) {
+      navigate("/seleccion-area", { replace: true })
+    }
+  }, [navigate])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
     setIsLoading(true)
 
     try {
-      const res = await fetch("http://localhost:3333/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ usuario, contrasena }),
-      })
-
-      const data: LoginResponse = await res.json()
-
-      if (!res.ok) {
-        setError(data.mensaje || "Error en login")
-        return
-      }
+      const data = await authService.login(usuario, contrasena)
 
       console.log("Login exitoso", data)
 
-      localStorage.setItem("user", JSON.stringify(data.usuario))
-      localStorage.setItem("token", "logged-in")
+      // Redirigir según el rol/área del usuario
+      const user = data.usuario
 
-
-      navigate("/seleccion-area")
-    } catch (err) {
-      console.error("Error de conexión:", err)
-      setError("No se pudo conectar al servidor")
+      // Si es administrador, puede ir a selección de área
+      if (user.role?.name?.toLowerCase() === "administrador") {
+        navigate("/seleccion-area")
+      }
+      // Si tiene área específica, ir directamente a su dashboard
+      else if (user.area?.name?.toLowerCase().includes("tecnologia")) {
+        navigate("/dashboard-Tic")
+      } else if (user.area?.name?.toLowerCase().includes("operaciones")) {
+        navigate("/dashboard-operaciones")
+      }
+      // Por defecto, ir a selección de área
+      else {
+        navigate("/seleccion-area")
+      }
+    } catch (error: any) {
+      console.error("Error de login:", error)
+      setError(error.message || "Error en login")
     } finally {
       setIsLoading(false)
     }
@@ -80,7 +77,7 @@ const Login = () => {
               {/* Header with logo */}
               <div className="card-header bg-transparent border-primary border-opacity-50 text-center py-4">
                 <img
-                  src={LogoPharmaserv}
+                  src={LogoPharmaserv || "/placeholder.svg"}
                   alt="Pharmaserv Logo"
                   className="img-fluid"
                   style={{ maxHeight: "80px", maxWidth: "200px" }}
@@ -191,7 +188,7 @@ const Login = () => {
                               strokeLinecap="round"
                               strokeLinejoin="round"
                               strokeWidth="2"
-                              d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
+                              d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013 3v1"
                             />
                           </svg>
                           Iniciar Sesión

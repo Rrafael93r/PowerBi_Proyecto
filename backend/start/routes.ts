@@ -25,14 +25,16 @@ router.get('/roles/:id', [RolesController, 'show'])
 router.put('/roles/:id', [RolesController, 'update'])
 
 
+
 // Rutas Areas
 router.get('/areas', [AreasController, 'index'])        
 router.post('/areas', [AreasController, 'store'])
 router.get('/areas/:id', [AreasController, 'show'])
 router.put('/areas/:id', [AreasController, 'update'])
 
-// Rutas Estados
 
+
+// Rutas Estados
 router.get('/estados', [EstadosController, 'index'])
 router.post('/estados', [EstadosController, 'store'])
 router.get('/estados/:id', [EstadosController, 'show'])

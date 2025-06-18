@@ -1,8 +1,10 @@
 "use client"
 
 import type React from "react"
+import { useState, useEffect } from "react"
 import { LogOut, User } from "lucide-react"
 import { useNavigate } from "react-router-dom"
+import { authService, type Usuario } from "../Servicios/auth"
 import "bootstrap-icons/font/bootstrap-icons.css"
 
 import logotecnologia from "../assets/icons8-laptop-100.png"
@@ -76,27 +78,6 @@ const styles = {
   },
 }
 
-const areas = [
-  {
-    id: "tecnologia",
-    title: "TECNOLOGÍA",
-    description: "Dashboards de incidencias, mesa de ayuda y análisis técnico",
-    icon: logotecnologia,
-    iconBg: COLORS.green,
-    iconColor: COLORS.greenSolid,
-    route: "/dashboard-Tic",
-  },
-  {
-    id: "operaciones",
-    title: "OPERACIONES",
-    description: "Control de farmacias del consorcio y análisis de novedades",
-    icon: logooperaciones,
-    iconBg: COLORS.blue,
-    iconColor: COLORS.blueSolid,
-    route: "/dashboard-operaciones",
-  },
-]
-
 const features = [
   {
     icon: logoescudo,
@@ -109,23 +90,89 @@ const features = [
 ]
 
 const Header = () => {
-  const navigate = useNavigate() // Volvemos a usar React Router
+  const navigate = useNavigate()
+  const [currentUser, setCurrentUser] = useState<Usuario | null>(null)
+  const [availableAreas, setAvailableAreas] = useState<any[]>([])
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
 
-  const handleLogout = () => {
+  useEffect(() => {
+    // Obtener usuario actual
+    const user = authService.getCurrentUser()
+    setCurrentUser(user)
+
+    // Configurar áreas disponibles según el usuario
+    if (user) {
+      const areas = []
+
+      // Si es administrador, puede ver todas las áreas
+      if (authService.hasRole("administrador")) {
+        areas.push(
+          {
+            id: "tecnologia",
+            title: "TECNOLOGÍA",
+            description: "Dashboards de incidencias, mesa de ayuda y análisis técnico",
+            icon: logotecnologia,
+            iconBg: COLORS.green,
+            iconColor: COLORS.greenSolid,
+            route: "/dashboard-Tic",
+          },
+          {
+            id: "operaciones",
+            title: "OPERACIONES",
+            description: "Control de farmacias del consorcio y análisis de novedades",
+            icon: logooperaciones,
+            iconBg: COLORS.blue,
+            iconColor: COLORS.blueSolid,
+            route: "/dashboard-operaciones",
+          },
+        )
+      } else {
+        // Solo mostrar el área del usuario
+        if (authService.hasArea("tecnologia")) {
+          areas.push({
+            id: "tecnologia",
+            title: "TECNOLOGÍA",
+            description: "Dashboards de incidencias, mesa de ayuda y análisis técnico",
+            icon: logotecnologia,
+            iconBg: COLORS.green,
+            iconColor: COLORS.greenSolid,
+            route: "/dashboard-Tic",
+          })
+        }
+
+        if (authService.hasArea("operaciones")) {
+          areas.push({
+            id: "operaciones",
+            title: "OPERACIONES",
+            description: "Control de farmacias del consorcio y análisis de novedades",
+            icon: logooperaciones,
+            iconBg: COLORS.blue,
+            iconColor: COLORS.blueSolid,
+            route: "/dashboard-operaciones",
+          })
+        }
+      }
+
+      setAvailableAreas(areas)
+    }
+  }, [])
+
+  const handleLogout = async () => {
+    if (isLoggingOut) return
+
+    setIsLoggingOut(true)
     console.log("Cerrando sesión...")
 
-    // Limpiar datos del localStorage
-    localStorage.removeItem("user")
-    localStorage.removeItem("token")
-
-    // Opcional: Limpiar todo el localStorage
-    // localStorage.clear()
-
-    // Redirigir al login
-    navigate("/login")
-
-    // Opcional: Mostrar mensaje de confirmación
-    // alert("Sesión cerrada exitosamente")
+    try {
+      await authService.logout()
+      navigate("/login", { replace: true })
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error)
+      // Aún así, redirigir al login
+      navigate("/login", { replace: true })
+    } finally {
+      setIsLoggingOut(false)
+    }
   }
 
   const handleLogoHover = (e: React.MouseEvent<HTMLDivElement>, isEntering: boolean) => {
@@ -149,7 +196,15 @@ const Header = () => {
   }
 
   const navigateToArea = (route: string) => {
-    navigate(route) // Usamos navigate de React Router
+    navigate(route)
+  }
+
+  // Función para obtener el nombre completo del usuario
+  const getUserDisplayName = () => {
+    if (!currentUser) return "Usuario"
+
+    const { nombre, segundo_nombre, apellido_1 } = currentUser
+    return `${nombre} ${segundo_nombre || ""} ${apellido_1 || ""}`.trim()
   }
 
   return (
@@ -174,18 +229,33 @@ const Header = () => {
             <div className="d-flex align-items-center gap-3">
               <div className="d-flex align-items-center gap-2 text-white">
                 <User size={18} />
-                <strong>Administrador</strong>
+                <div className="d-flex flex-column">
+                  <strong className="mb-0">{getUserDisplayName()}</strong>
+                  <small className="text-white-50">
+                    {currentUser?.role?.name} - {currentUser?.area?.name}
+                  </small>
+                </div>
               </div>
               <button
                 className="btn btn-outline-light btn-sm d-flex align-items-center gap-2"
                 onClick={handleLogout}
+                disabled={isLoggingOut}
                 style={styles.logoutButton}
                 onMouseEnter={(e) => handleButtonHover(e, true)}
                 onMouseLeave={(e) => handleButtonHover(e, false)}
                 aria-label="Cerrar sesión"
               >
-                <LogOut size={16} />
-                <span className="d-none d-sm-inline">Cerrar Sesión</span>
+                {isLoggingOut ? (
+                  <>
+                    <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    <span className="d-none d-sm-inline">Cerrando...</span>
+                  </>
+                ) : (
+                  <>
+                    <LogOut size={16} />
+                    <span className="d-none d-sm-inline">Cerrar Sesión</span>
+                  </>
+                )}
               </button>
             </div>
           </div>
@@ -222,40 +292,47 @@ const Header = () => {
       {/* Cards Section */}
       <div className="container-fluid py-5" style={{ backgroundColor: COLORS.secondary, minHeight: "100vh" }}>
         <div className="container">
-          <div className="row justify-content-center gap-4">
-            {areas.map((area) => (
-              <div key={area.id} className="col-lg-5 col-md-6">
-                <div className="card text-white p-4 d-flex flex-column align-items-center h-100" style={styles.card}>
-                  <img
-                    src={area.icon || "/placeholder.svg"}
-                    alt={`Ícono de ${area.title.toLowerCase()}`}
-                    style={{
-                      ...styles.cardIcon,
-                      backgroundColor: area.iconBg,
-                    }}
-                  />
-                  <h4 className="mt-3 text-center">{area.title}</h4>
-                  <p className="text-center flex-grow-1">{area.description}</p>
-                  <hr className="w-100 border-light" />
-                  <button
-                    onClick={() => navigateToArea(area.route)}
-                    style={styles.actionButton}
-                    aria-label={`Ir a ${area.title}`}
-                  >
-                    <div
+          {availableAreas.length > 0 ? (
+            <div className="row justify-content-center gap-4">
+              {availableAreas.map((area) => (
+                <div key={area.id} className="col-lg-5 col-md-6">
+                  <div className="card text-white p-4 d-flex flex-column align-items-center h-100" style={styles.card}>
+                    <img
+                      src={area.icon || "/placeholder.svg"}
+                      alt={`Ícono de ${area.title.toLowerCase()}`}
                       style={{
-                        ...styles.actionCircle,
+                        ...styles.cardIcon,
                         backgroundColor: area.iconBg,
-                        color: area.iconColor,
                       }}
+                    />
+                    <h4 className="mt-3 text-center">{area.title}</h4>
+                    <p className="text-center flex-grow-1">{area.description}</p>
+                    <hr className="w-100 border-light" />
+                    <button
+                      onClick={() => navigateToArea(area.route)}
+                      style={styles.actionButton}
+                      aria-label={`Ir a ${area.title}`}
                     >
-                      <i className="bi bi-arrow-right fs-5"></i>
-                    </div>
-                  </button>
+                      <div
+                        style={{
+                          ...styles.actionCircle,
+                          backgroundColor: area.iconBg,
+                          color: area.iconColor,
+                        }}
+                      >
+                        <i className="bi bi-arrow-right fs-5"></i>
+                      </div>
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center text-white">
+              <h3>No tienes acceso a ningún área</h3>
+              <p>Contacta al administrador para obtener permisos</p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -269,8 +346,6 @@ const Header = () => {
           </div>
         </div>
       </footer>
-
-      <div></div>
     </>
   )
 }

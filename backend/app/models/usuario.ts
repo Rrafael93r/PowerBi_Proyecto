@@ -1,71 +1,79 @@
-import { DateTime } from 'luxon'
-import Hash from '@adonisjs/core/services/hash'
-import {
-  BaseModel,
-  column,
-  belongsTo,
-  beforeSave
-} from '@adonisjs/lucid/orm'
+import type { DateTime } from "luxon"
+import { BaseModel, column, beforeSave, belongsTo } from "@adonisjs/lucid/orm"
+import type { BelongsTo } from "@adonisjs/lucid/types/relations"
+import Hash from "@adonisjs/core/services/hash"
+import { DbAccessTokensProvider } from "@adonisjs/auth/access_tokens"
 
-import type { BelongsTo } from '@adonisjs/lucid/types/relations'
-import Role from '../models/role.js'
-import Area from '../models/area.js'
-import Estado from '../models/estado.js'
+import Role from "#models/role"
+import Area from "#models/area"
+import Estado from "#models/estado"
 
 export default class Usuario extends BaseModel {
+  // Configurar el proveedor de access tokens
+  static accessTokens = DbAccessTokensProvider.forModel(Usuario)
+
   @column({ isPrimary: true })
-  public id!: number
-
-
-  @column()
-  public nombre!: string
+  declare id: number
 
   @column()
-  public segundo_nombre!: string
+  declare nombre: string
 
   @column()
-  public apellido_2!: string
+  declare segundo_nombre: string
 
   @column()
-  public apellido_1!: string
+  declare apellido_1: string
 
   @column()
-  public correo!: string
+  declare apellido_2: string
 
   @column()
-  public usuario!: string
+  declare correo: string
+
+  @column()
+  declare usuario: string
 
   @column({ serializeAs: null })
-  public contrasena!: string
+  declare contrasena: string
 
-  @column({ columnName: 'role_id' })
-  public roleId!: number
+  @column({ columnName: "role_id" })
+  declare roleId: number
 
   @belongsTo(() => Role)
-  public role!: BelongsTo<typeof Role>
+  declare role: BelongsTo<typeof Role>
 
-  @column({ columnName: 'estado_id' })
-  public estadoId!: number
+  @column({ columnName: "estado_id" })
+  declare estadoId: number
 
   @belongsTo(() => Estado)
-  public estado!: BelongsTo<typeof Estado>
+  declare estado: BelongsTo<typeof Estado>
 
-  @column({ columnName: 'area_id' })
-  public areaId!: number
+  @column({ columnName: "area_id" })
+  declare areaId: number
 
   @belongsTo(() => Area)
-  public area!: BelongsTo<typeof Area>
+  declare area: BelongsTo<typeof Area>
 
   @column.dateTime({ autoCreate: true })
-  public createdAt!: DateTime
+  declare createdAt: DateTime
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
-  public updatedAt!: DateTime
+  declare updatedAt: DateTime
 
   @beforeSave()
   public static async hashPassword(usuario: Usuario) {
     if (usuario.$dirty.contrasena) {
       usuario.contrasena = await Hash.make(usuario.contrasena)
     }
+  }
+
+  // Método para verificar contraseña
+  public async verifyPassword(plainPassword: string): Promise<boolean> {
+    return Hash.verify(this.contrasena, plainPassword)
+  }
+
+  // Método estático para encontrar usuario por campo 'usuario' (para autenticación)
+  public static async findForAuth(value: string) {
+    return this.query().where("usuario", value).first()
   }
 }
