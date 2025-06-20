@@ -2,16 +2,20 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { LogOut, User } from "lucide-react"
+import { ChevronDown, LogOut, User, X } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { authService, type Usuario } from "../Servicios/auth"
 import "bootstrap-icons/font/bootstrap-icons.css"
+import "bootstrap/dist/css/bootstrap.min.css"
 
 import logotecnologia from "../assets/icons8-laptop-100.png"
 import logooperaciones from "../assets/icons8-pastillas-100.png"
 import logoescudo from "../assets/icons8-escudo-100.png"
 import logografico from "../assets/icons8-grafico-naranja-100.png"
 import logo from "../assets/icons8-grafico-100.png"
+
+// Importar el componente CrearUsuario
+import CrearUsuario from "../Componentes/CrearUsuario"
 
 // Constantes de colores para mantener consistencia
 const COLORS = {
@@ -76,6 +80,52 @@ const styles = {
     alignItems: "center",
     justifyContent: "center",
   },
+  // Estilos para el modal
+  modalOverlay: {
+    position: "fixed" as const,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 1050,
+  },
+  modalContent: {
+    backgroundColor: "white",
+    borderRadius: "8px",
+    width: "90%",
+    maxWidth: "500px",
+    maxHeight: "90vh",
+    overflow: "auto",
+  },
+  modalHeader: {
+    padding: "1rem 1.5rem",
+    borderBottom: "1px solid #dee2e6",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  modalBody: {
+    padding: "1rem 1.5rem",
+  },
+  modalFooter: {
+    padding: "1rem 1.5rem",
+    borderTop: "1px solid #dee2e6",
+    display: "flex",
+    gap: "0.5rem",
+    justifyContent: "flex-end",
+  },
+  closeButton: {
+    background: "none",
+    border: "none",
+    fontSize: "1.5rem",
+    cursor: "pointer",
+    padding: "0",
+    color: "#6c757d",
+  },
 }
 
 const features = [
@@ -94,6 +144,8 @@ const Header = () => {
   const [currentUser, setCurrentUser] = useState<Usuario | null>(null)
   const [availableAreas, setAvailableAreas] = useState<any[]>([])
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
 
   useEffect(() => {
     // Obtener usuario actual
@@ -157,6 +209,19 @@ const Header = () => {
     }
   }, [])
 
+  // Cerrar dropdown cuando se hace clic fuera
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement
+      if (!target.closest(".dropdown")) {
+        setIsDropdownOpen(false)
+      }
+    }
+
+    document.addEventListener("click", handleClickOutside)
+    return () => document.removeEventListener("click", handleClickOutside)
+  }, [])
+
   const handleLogout = async () => {
     if (isLoggingOut) return
 
@@ -180,21 +245,6 @@ const Header = () => {
     target.style.transform = isEntering ? "scale(1.05)" : "scale(1)"
   }
 
-  const handleButtonHover = (e: React.MouseEvent<HTMLButtonElement>, isEntering: boolean) => {
-    const target = e.target as HTMLButtonElement
-    if (isEntering) {
-      target.style.backgroundColor = COLORS.accent
-      target.style.borderColor = COLORS.accent
-      target.style.color = "white"
-      target.style.transform = "translateY(-1px)"
-    } else {
-      target.style.backgroundColor = "transparent"
-      target.style.borderColor = "white"
-      target.style.color = "white"
-      target.style.transform = "translateY(0)"
-    }
-  }
-
   const navigateToArea = (route: string) => {
     navigate(route)
   }
@@ -205,6 +255,104 @@ const Header = () => {
 
     const { nombre, segundo_nombre, apellido_1 } = currentUser
     return `${nombre} ${segundo_nombre || ""} ${apellido_1 || ""}`.trim()
+  }
+
+  const openModal = () => {
+    setIsModalOpen(true)
+    setIsDropdownOpen(false)
+  }
+
+  const closeModal = () => {
+    setIsModalOpen(false)
+  }
+
+  const toggleDropdown = () => {
+    setIsDropdownOpen(!isDropdownOpen)
+  }
+
+  // Modal Component
+  const Modal = () => {
+    if (!isModalOpen) return null
+
+    return (
+      <div
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100vw",
+          height: "100vh",
+          backgroundColor: "rgba(0, 0, 0, 0.8)",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          zIndex: 1050,
+        }}
+        onClick={closeModal}
+      >
+        <div
+          style={{
+            backgroundColor: COLORS.cardBg,
+            color: "white",
+            borderRadius: "12px",
+            width: "700px",
+            maxWidth: "95%",
+            maxHeight: "90vh",
+            overflow: "auto",
+            boxShadow: "0 10px 40px rgba(0,0,0,0.5)",
+            border: "1px solid rgba(255, 255, 255, 0.1)",
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header del Modal */}
+          <div
+            style={{
+              backgroundColor: COLORS.primary,
+              padding: "1.5rem",
+              borderRadius: "12px 12px 0 0",
+              borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <h5 className="modal-title mb-0 d-flex align-items-center gap-2 text-white" style={{ fontSize: "1.25rem", textAlign: "center" }}>
+              <User size={20} />
+              Crear Nuevo Usuario
+            </h5>
+            <button
+              type="button"
+              onClick={closeModal}
+              aria-label="Close"
+              style={{
+                background: "none",
+                border: "none",
+                color: "rgba(255, 255, 255, 0.7)",
+                cursor: "pointer",
+                padding: "4px",
+                borderRadius: "4px",
+                transition: "all 0.2s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.1)"
+                e.currentTarget.style.color = "white"
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "transparent"
+                e.currentTarget.style.color = "rgba(255, 255, 255, 0.7)"
+              }}
+            >
+              <X size={20} />
+            </button>
+          </div>
+
+          {/* Body del Modal */}
+          <div style={{ padding: "1.5rem" }}>
+            <CrearUsuario onClose={closeModal} />
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -227,36 +375,82 @@ const Header = () => {
 
             {/* Usuario y logout */}
             <div className="d-flex align-items-center gap-3">
-              <div className="d-flex align-items-center gap-2 text-white">
-                <User size={18} />
-                <div className="d-flex flex-column">
-                  <strong className="mb-0">{getUserDisplayName()}</strong>
-                  <small className="text-white-50">
-                    {currentUser?.role?.name} - {currentUser?.area?.name}
-                  </small>
-                </div>
-              </div>
-              <button
-                className="btn btn-outline-light btn-sm d-flex align-items-center gap-2"
-                onClick={handleLogout}
-                disabled={isLoggingOut}
-                style={styles.logoutButton}
-                onMouseEnter={(e) => handleButtonHover(e, true)}
-                onMouseLeave={(e) => handleButtonHover(e, false)}
-                aria-label="Cerrar sesión"
-              >
-                {isLoggingOut ? (
-                  <>
-                    <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                    <span className="d-none d-sm-inline">Cerrando...</span>
-                  </>
-                ) : (
-                  <>
-                    <LogOut size={16} />
-                    <span className="d-none d-sm-inline">Cerrar Sesión</span>
-                  </>
+              <div className="dropdown position-relative">
+                <button
+                  className="btn btn-outline-light btn-sm d-flex align-items-center gap-2"
+                  type="button"
+                  onClick={toggleDropdown}
+                  style={{
+                    borderRadius: "6px",
+                    border: "1px solid rgba(255, 255, 255, 0.2)",
+                    fontSize: "13px",
+                  }}
+                >
+                  <div className="d-flex align-items-center gap-2 text-white">
+                    <User size={18} />
+                    <div className="d-flex flex-column">
+                      <strong className="mb-0">{getUserDisplayName()}</strong>
+                      <small className="text-white-50">
+                        {currentUser?.role?.name} - {currentUser?.area?.name}
+                      </small>
+                    </div>
+                  </div>
+                  <ChevronDown size={16} />
+                </button>
+
+                {isDropdownOpen && (
+                  <ul
+                    className="dropdown-menu dropdown-menu-end show position-absolute"
+                    style={{
+                      backgroundColor: COLORS.cardBg,
+                      border: "1px solid rgba(255, 255, 255, 0.1)",
+                      borderRadius: "8px",
+                      top: "100%",
+                      right: 0,
+                      zIndex: 1000,
+                    }}
+                  >
+                    <li className="dropdown-item">
+                      <button type="button" className="btn w-100 text-white" onClick={openModal}>
+                        Crear Usuario
+                      </button>
+                    </li>
+                    <li className="dropdown-item">
+                      <button type="button" className="btn w-100 text-white">
+                        Crear Dashboard
+                      </button>
+                    </li>
+                    <li>
+                      <hr className="dropdown-divider" style={{ borderColor: "rgba(255, 255, 255, 0.1)" }} />
+                    </li>
+                    <li>
+                      <button
+                        className="dropdown-item text-white d-flex align-items-center gap-2"
+                        onClick={handleLogout}
+                        disabled={isLoggingOut}
+                        style={{ fontSize: "14px" }}
+                      >
+                        {isLoggingOut ? (
+                          <>
+                            <div
+                              className="spinner-border spinner-border-sm"
+                              role="status"
+                              aria-hidden="true"
+                              style={{ width: "14px", height: "14px" }}
+                            ></div>
+                            <span>Cerrando...</span>
+                          </>
+                        ) : (
+                          <>
+                            <LogOut size={14} />
+                            <span>Cerrar Sesión</span>
+                          </>
+                        )}
+                      </button>
+                    </li>
+                  </ul>
                 )}
-              </button>
+              </div>
             </div>
           </div>
         </div>
@@ -346,6 +540,9 @@ const Header = () => {
           </div>
         </div>
       </footer>
+
+      {/* Modal */}
+      <Modal />
     </>
   )
 }
