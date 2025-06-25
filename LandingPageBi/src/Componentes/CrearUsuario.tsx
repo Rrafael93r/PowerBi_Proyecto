@@ -184,7 +184,6 @@ const CrearUsuario = ({ onClose }: CrearUsuarioProps) => {
           setAreas(areasData)
         }
       } catch (error) {
-        console.error("Error cargando datos iniciales:", error)
         setErrors({ general: "Error cargando datos del servidor" })
       } finally {
         setIsLoading(false)
@@ -278,8 +277,6 @@ const CrearUsuario = ({ onClose }: CrearUsuarioProps) => {
       })
 
       if (response.ok) {
-        const newUser = await response.json()
-        console.log("Usuario creado exitosamente:", newUser)
 
         setSuccess("Usuario creado exitosamente")
 
@@ -322,7 +319,6 @@ const CrearUsuario = ({ onClose }: CrearUsuarioProps) => {
         }
       }
     } catch (error) {
-      console.error("Error al crear usuario:", error)
       setErrors({ general: "Error de conexión con el servidor" })
     } finally {
       setIsSubmitting(false)

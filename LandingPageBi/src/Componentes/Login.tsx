@@ -30,7 +30,6 @@ const Login = () => {
     try {
       const data = await authService.login(usuario, contrasena)
 
-      console.log("Login exitoso", data)
 
       const user = data.usuario
 
@@ -42,7 +41,6 @@ const Login = () => {
         navigate("/seleccion-area")
       }
     } catch (error: any) {
-      console.error("Error de login:", error)
       setError(error.message || "Error en login")
     } finally {
       setIsLoading(false)

@@ -226,13 +226,11 @@ const Header = () => {
     if (isLoggingOut) return
 
     setIsLoggingOut(true)
-    console.log("Cerrando sesión...")
 
     try {
       await authService.logout()
       navigate("/login", { replace: true })
     } catch (error) {
-      console.error("Error al cerrar sesión:", error)
       // Aún así, redirigir al login
       navigate("/login", { replace: true })
     } finally {

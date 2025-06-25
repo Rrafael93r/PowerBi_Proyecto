@@ -67,7 +67,7 @@ export const authService = {
           },
         })
       } catch (error) {
-        console.error("Error al cerrar sesión en el servidor:", error)
+  
       }
     }
 
