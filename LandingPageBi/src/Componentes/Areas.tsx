@@ -14,10 +14,12 @@ import logoescudo from "../assets/icons8-escudo-100.png"
 import logografico from "../assets/icons8-grafico-naranja-100.png"
 import logo from "../assets/icons8-grafico-100.png"
 
-// Importar el componente CrearUsuario
+
+
 import CrearUsuario from "../Componentes/CrearUsuario"
 
-// Constantes de colores para mantener consistencia
+
+
 const COLORS = {
   primary: "#0f1419",
   accent: "#db6600",
@@ -148,15 +150,15 @@ const Header = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
 
   useEffect(() => {
-    // Obtener usuario actual
     const user = authService.getCurrentUser()
     setCurrentUser(user)
 
-    // Configurar áreas disponibles según el usuario
+
+
     if (user) {
       const areas = []
 
-      // Si es administrador, puede ver todas las áreas
+
       if (authService.hasRole("administrador")) {
         areas.push(
           {
@@ -179,7 +181,6 @@ const Header = () => {
           },
         )
       } else {
-        // Solo mostrar el área del usuario
         if (authService.hasArea("tecnologia")) {
           areas.push({
             id: "tecnologia",
@@ -209,7 +210,6 @@ const Header = () => {
     }
   }, [])
 
-  // Cerrar dropdown cuando se hace clic fuera
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement

@@ -15,7 +15,7 @@ const Login = () => {
 
   const navigate = useNavigate()
 
-  // Verificar si ya está autenticado
+
   useEffect(() => {
     if (authService.isAuthenticated()) {
       navigate("/seleccion-area", { replace: true })
@@ -64,7 +64,7 @@ const Login = () => {
         <div className="row justify-content-center">
           <div className="col-md-6 col-lg-5 col-xl-4">
             <div className="card bg-dark bg-opacity-85 border-primary border-opacity-75 shadow-lg rounded-4">
-              {/* Header with logo */}
+
               <div className="card-header bg-transparent border-primary border-opacity-50 text-center py-4">
                 <img
                   src={LogoPharmaserv || "/placeholder.svg"}
@@ -74,7 +74,7 @@ const Login = () => {
                 />
               </div>
 
-              {/* Form body */}
+            
               <div className="card-body p-4">
                 <form onSubmit={handleSubmit}>
                   <div className="mb-3">
@@ -133,6 +133,7 @@ const Login = () => {
                     </div>
                   </div>
 
+
                   <div className="mb-3">
                     <div className="form-check">
                       <input className="form-check-input border-primary" type="checkbox" id="rememberMe" />
@@ -142,7 +143,8 @@ const Login = () => {
                     </div>
                   </div>
 
-                  {/* Mostrar errores */}
+                  
+
                   {error && (
                     <div className="alert alert-danger mb-3" role="alert">
                       <small>{error}</small>
@@ -190,7 +192,7 @@ const Login = () => {
               </div>
             </div>
 
-            {/* Footer */}
+
             <div className="text-center mt-4">
               <small className="text-white-50">© 2025 Ing. Rafael Rojas, Orlando Bertel. All rights reserved.</small>
             </div>
@@ -200,5 +202,7 @@ const Login = () => {
     </div>
   )
 }
+
+
 
 export default Login
