@@ -265,7 +265,7 @@ const CrearUsuario = ({ onClose }: CrearUsuarioProps) => {
         contrasena: formData.contrasena,
         roleId: Number.parseInt(formData.roleId),
         areaId: Number.parseInt(formData.areaId),
-        estadoId: 1, // Asumiendo que 1 es "activo" - ajusta según tu base de datos
+        estadoId: 1, 
       }
 
       const response = await fetch(`${API_BASE_URL}/usuarios`, {

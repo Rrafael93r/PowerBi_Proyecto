@@ -15,8 +15,9 @@ export default class extends BaseSchema {
         .inTable('estados')
         .onDelete('CASCADE')
         .notNullable()
-      table.datetime('created_at').nullable().defaultTo(this.now())
-      table.datetime('updated_at').nullable().defaultTo(this.now())
+      table.datetime('created_at').nullable()
+      table.datetime('updated_at').nullable()
+      
     })
   }
 

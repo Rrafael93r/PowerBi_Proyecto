@@ -8,8 +8,9 @@ export default class extends BaseSchema {
       table.increments('id')
       table.string('name')
       table.string('descripcion', 500).nullable()
-      table.datetime('created_at').notNullable().defaultTo(this.now())
-      table.datetime('updated_at').notNullable().defaultTo(this.now())
+
+      table.datetime('created_at').nullable()
+      table.datetime('updated_at').nullable()
     })
   }
 
