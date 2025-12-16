@@ -3,6 +3,7 @@ import PaginaDashboard from "../Paginas/PaginaDashboard"
 import SeleccionArea from "../Paginas/PaginaSeleccionArea"
 import PaginaLogin from "../Paginas/PaginaLogin"
 import ProtectedRoute from "./ProteccionRutas"
+import ListadoDashboards from "../Componentes/ListadoDashboards"
 
 export const AppRutas = () => {
     return (
@@ -20,7 +21,7 @@ export const AppRutas = () => {
                 }
             />
 
-         
+
             <Route
                 path="/dashboard-Tic"
                 element={
@@ -30,17 +31,16 @@ export const AppRutas = () => {
                 }
             />
 
-          
             <Route
-                path="/dashboard-operaciones"
+                path="/dashboards/:areaId"
                 element={
-                    <ProtectedRoute requiredArea="operaciones">
-                        <div>Dashboard de Operaciones (Por implementar)</div>
+                    <ProtectedRoute>
+                        <ListadoDashboards />
                     </ProtectedRoute>
                 }
             />
 
-          
+
             <Route
                 path="/admin"
                 element={

@@ -1,6 +1,6 @@
 import type { DateTime } from "luxon"
-import { BaseModel, column, beforeSave, belongsTo } from "@adonisjs/lucid/orm"
-import type { BelongsTo } from "@adonisjs/lucid/types/relations"
+import { BaseModel, column, beforeSave, belongsTo, manyToMany } from "@adonisjs/lucid/orm"
+import type { BelongsTo, ManyToMany } from "@adonisjs/lucid/types/relations"
 import Hash from "@adonisjs/core/services/hash"
 import { DbAccessTokensProvider } from "@adonisjs/auth/access_tokens"
 
@@ -42,17 +42,24 @@ export default class Usuario extends BaseModel {
   @belongsTo(() => Role)
   declare role: BelongsTo<typeof Role>
 
+  @column({ columnName: "area_principal_id" })
+  declare areaPrincipalId: number | null
+
+  @belongsTo(() => Area, {
+    foreignKey: 'areaPrincipalId'
+  })
+  declare areaPrincipal: BelongsTo<typeof Area>
+
   @column({ columnName: "estado_id" })
   declare estadoId: number
 
   @belongsTo(() => Estado)
   declare estado: BelongsTo<typeof Estado>
 
-  @column({ columnName: "area_id" })
-  declare areaId: number
-
-  @belongsTo(() => Area)
-  declare area: BelongsTo<typeof Area>
+  @manyToMany(() => Area, {
+    pivotTable: 'area_usuario',
+  })
+  declare areas: ManyToMany<typeof Area>
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
@@ -74,6 +81,10 @@ export default class Usuario extends BaseModel {
 
   // Método estático para encontrar usuario por campo 'usuario' (para autenticación)
   public static async findForAuth(value: string) {
-    return this.query().where("usuario", value).first()
+    return this.query().where("usuario", value).preload('areas').preload('role').preload('areaPrincipal').first()
+  }
+
+  public hasArea(areaId: number): boolean {
+    return this.areas.some(area => area.id === areaId)
   }
 }

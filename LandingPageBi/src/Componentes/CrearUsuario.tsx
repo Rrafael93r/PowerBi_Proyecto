@@ -3,6 +3,7 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import { User, Mail, Lock, Shield, Building, Eye, EyeOff, Save, X, UserCheck } from "lucide-react"
+import { authService } from "../Servicios/auth"
 
 // Constantes de colores para mantener consistencia
 const COLORS = {
@@ -117,7 +118,8 @@ interface FormData {
   contrasena: string
   confirmPassword: string
   roleId: string
-  areaId: string
+  areaPrincipalId: string
+  areaIds: string[]
 }
 
 interface Role {
@@ -132,35 +134,36 @@ interface Area {
 
 interface CrearUsuarioProps {
   onClose?: () => void
+  userToEdit?: any // Using any to avoid importing the Usuario interface locally, or could export/import
 }
 
-const CrearUsuario = ({ onClose }: CrearUsuarioProps) => {
+const CrearUsuario = ({ onClose, userToEdit }: CrearUsuarioProps) => {
   const [formData, setFormData] = useState<FormData>({
-    nombre: "",
-    segundo_nombre: "",
-    apellido_1: "",
-    apellido_2: "",
-    usuario: "",
-    correo: "",
+    nombre: userToEdit?.nombre || "",
+    segundo_nombre: userToEdit?.segundo_nombre || "",
+    apellido_1: userToEdit?.apellido_1 || "",
+    apellido_2: userToEdit?.apellido_2 || "",
+    usuario: userToEdit?.usuario || "",
+    correo: userToEdit?.correo || "",
     contrasena: "",
     confirmPassword: "",
-    roleId: "",
-    areaId: "",
+    roleId: userToEdit?.role?.id?.toString() || "",
+    areaPrincipalId: userToEdit?.areaPrincipal?.id?.toString() || "",
+    areaIds: userToEdit?.areas?.map((a: any) => a.id.toString()) || [],
   })
 
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
-  const [errors, setErrors] = useState<Partial<FormData & { general: string }>>({})
+  const [errors, setErrors] = useState<Partial<Record<keyof FormData | "general", string>>>({})
   const [success, setSuccess] = useState("")
 
   // Estados para datos del backend
   const [roles, setRoles] = useState<Role[]>([])
   const [areas, setAreas] = useState<Area[]>([])
 
-  // URL base de tu API - ajusta según tu configuración
-  const API_BASE_URL = "http://localhost:3333"
+
 
   // Cargar roles y áreas al montar el componente
   useEffect(() => {
@@ -170,8 +173,8 @@ const CrearUsuario = ({ onClose }: CrearUsuarioProps) => {
 
         // Cargar roles y áreas en paralelo
         const [rolesResponse, areasResponse] = await Promise.all([
-          fetch(`${API_BASE_URL}/roles`),
-          fetch(`${API_BASE_URL}/areas`),
+          authService.authenticatedRequest('/roles'),
+          authService.authenticatedRequest('/areas'),
         ])
 
         if (rolesResponse.ok) {
@@ -216,7 +219,7 @@ const CrearUsuario = ({ onClose }: CrearUsuarioProps) => {
   }
 
   const validateForm = (): boolean => {
-    const newErrors: Partial<FormData> = {}
+    const newErrors: Partial<Record<keyof FormData, string>> = {}
 
     if (!formData.nombre.trim()) newErrors.nombre = "El nombre es requerido"
     if (!formData.apellido_1.trim()) newErrors.apellido_1 = "El primer apellido es requerido"
@@ -230,16 +233,17 @@ const CrearUsuario = ({ onClose }: CrearUsuarioProps) => {
     } else if (!/\S+@\S+\.\S+/.test(formData.correo)) {
       newErrors.correo = "El correo no es válido"
     }
-    if (!formData.contrasena) {
+    if (!formData.contrasena && !userToEdit) {
       newErrors.contrasena = "La contraseña es requerida"
-    } else if (formData.contrasena.length < 6) {
+    } else if (formData.contrasena && formData.contrasena.length < 6) {
       newErrors.contrasena = "La contraseña debe tener al menos 6 caracteres"
     }
     if (formData.contrasena !== formData.confirmPassword) {
       newErrors.confirmPassword = "Las contraseñas no coinciden"
     }
     if (!formData.roleId) newErrors.roleId = "El rol es requerido"
-    if (!formData.areaId) newErrors.areaId = "El área es requerida"
+    if (!formData.areaPrincipalId) newErrors.areaPrincipalId = "El área principal es requerida"
+    if (formData.areaIds.length === 0) newErrors.areaIds = "Debe seleccionar áreas adicionales (o la misma)"
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -264,21 +268,22 @@ const CrearUsuario = ({ onClose }: CrearUsuarioProps) => {
         correo: formData.correo.trim(),
         contrasena: formData.contrasena,
         roleId: Number.parseInt(formData.roleId),
-        areaId: Number.parseInt(formData.areaId),
-        estadoId: 1, 
+        areaPrincipalId: Number.parseInt(formData.areaPrincipalId),
+        areas: formData.areaIds.map(id => Number.parseInt(id)),
+        estadoId: 1,
       }
 
-      const response = await fetch(`${API_BASE_URL}/usuarios`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+      const method = userToEdit ? "PUT" : "POST"
+      const url = userToEdit ? `/usuarios/${userToEdit.id}` : `/usuarios`
+
+      const response = await authService.authenticatedRequest(url, {
+        method: method,
         body: JSON.stringify(dataToSend),
       })
 
       if (response.ok) {
 
-        setSuccess("Usuario creado exitosamente")
+        setSuccess(userToEdit ? "Usuario actualizado exitosamente" : "Usuario creado exitosamente")
 
         // Limpiar formulario
         setFormData({
@@ -291,7 +296,8 @@ const CrearUsuario = ({ onClose }: CrearUsuarioProps) => {
           contrasena: "",
           confirmPassword: "",
           roleId: "",
-          areaId: "",
+          areaPrincipalId: "",
+          areaIds: [],
         })
 
         // Cerrar modal después de un breve delay para mostrar el mensaje de éxito
@@ -306,7 +312,7 @@ const CrearUsuario = ({ onClose }: CrearUsuarioProps) => {
 
         if (response.status === 422) {
           // Errores de validación
-          const validationErrors: Partial<FormData> = {}
+          const validationErrors: Partial<Record<keyof FormData, string>> = {}
           if (errorData.errors) {
             // AdonisJS devuelve errores en formato específico
             errorData.errors.forEach((error: any) => {
@@ -336,13 +342,42 @@ const CrearUsuario = ({ onClose }: CrearUsuarioProps) => {
       contrasena: "",
       confirmPassword: "",
       roleId: "",
-      areaId: "",
+      areaPrincipalId: "",
+      areaIds: [],
     })
+    if (userToEdit) {
+      // Reset to original data if cancel
+      setFormData({
+        nombre: userToEdit.nombre,
+        segundo_nombre: userToEdit.segundo_nombre || "",
+        apellido_1: userToEdit.apellido_1,
+        apellido_2: userToEdit.apellido_2 || "",
+        usuario: userToEdit.usuario,
+        correo: userToEdit.correo,
+        contrasena: "",
+        confirmPassword: "",
+        roleId: userToEdit.role?.id.toString(),
+        areaPrincipalId: userToEdit.areaPrincipal?.id?.toString() || "",
+        areaIds: userToEdit.areas?.map((a: any) => a.id.toString()) || [],
+      })
+    }
     setErrors({})
     setSuccess("")
 
     if (onClose) {
       onClose()
+    }
+  }
+
+  const handleAreaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedOptions = Array.from(e.target.selectedOptions, (option) => option.value)
+    setFormData((prev) => ({
+      ...prev,
+      areaIds: selectedOptions,
+    }))
+
+    if (selectedOptions.length > 0 && errors.areaIds) {
+      setErrors((prev) => ({ ...prev, areaIds: undefined }))
     }
   }
 
@@ -360,7 +395,7 @@ const CrearUsuario = ({ onClose }: CrearUsuarioProps) => {
       {/* Header del formulario */}
       <div style={{ marginBottom: "1.5rem", textAlign: "center" }}>
         <p style={{ color: "rgba(255, 255, 255, 0.7)", fontSize: "13px", margin: 0 }}>
-          Complete la información para crear un nuevo usuario
+          {userToEdit ? "Modifique la información del usuario" : "Complete la información para crear un nuevo usuario"}
         </p>
       </div>
 
@@ -524,7 +559,7 @@ const CrearUsuario = ({ onClose }: CrearUsuarioProps) => {
             <div style={styles.formGroup}>
               <label style={styles.label}>
                 <Lock size={14} />
-                Contraseña *
+                Contraseña {userToEdit && "(Opcional)"}
               </label>
               <div style={styles.inputGroup}>
                 <input
@@ -553,7 +588,7 @@ const CrearUsuario = ({ onClose }: CrearUsuarioProps) => {
             <div style={styles.formGroup}>
               <label style={styles.label}>
                 <Lock size={14} />
-                Confirmar *
+                Confirmar {userToEdit && "(Opcional)"}
               </label>
               <div style={styles.inputGroup}>
                 <input
@@ -612,15 +647,16 @@ const CrearUsuario = ({ onClose }: CrearUsuarioProps) => {
             </div>
           </div>
 
+          {/* Área Principal */}
           <div className="col-6">
             <div style={styles.formGroup}>
               <label style={styles.label}>
                 <Building size={14} />
-                Área *
+                Área Principal *
               </label>
               <select
-                name="areaId"
-                value={formData.areaId}
+                name="areaPrincipalId"
+                value={formData.areaPrincipalId}
                 onChange={handleInputChange}
                 style={styles.select}
                 onFocus={(e) => Object.assign(e.target.style, styles.inputFocus)}
@@ -630,14 +666,43 @@ const CrearUsuario = ({ onClose }: CrearUsuarioProps) => {
                 }}
                 disabled={isSubmitting}
               >
-                <option value="">Seleccionar área</option>
+                <option value="">Seleccionar área principal</option>
                 {areas.map((area) => (
                   <option key={area.id} value={area.id.toString()}>
                     {area.name}
                   </option>
                 ))}
               </select>
-              {errors.areaId && <div style={styles.errorText}>{errors.areaId}</div>}
+              {errors.areaPrincipalId && <div style={styles.errorText}>{errors.areaPrincipalId}</div>}
+            </div>
+          </div>
+
+          <div className="col-6">
+            <div style={styles.formGroup}>
+              <label style={styles.label}>
+                <Building size={14} />
+                Áreas Secundarias (Acceso Adicional)
+              </label>
+              <select
+                name="areaIds"
+                multiple
+                value={formData.areaIds}
+                onChange={handleAreaChange}
+                style={{ ...styles.select, height: "100px" }}
+                onFocus={(e) => Object.assign(e.target.style, styles.inputFocus)}
+                onBlur={(e) => {
+                  e.target.style.borderColor = COLORS.inputBorder
+                  e.target.style.boxShadow = "none"
+                }}
+                disabled={isSubmitting}
+              >
+                {areas.map((area) => (
+                  <option key={area.id} value={area.id.toString()}>
+                    {area.name}
+                  </option>
+                ))}
+              </select>
+              {errors.areaIds && <div style={styles.errorText}>{errors.areaIds}</div>}
             </div>
           </div>
         </div>
@@ -694,7 +759,7 @@ const CrearUsuario = ({ onClose }: CrearUsuarioProps) => {
             ) : (
               <>
                 <Save size={14} />
-                Crear Usuario
+                {userToEdit ? "Guardar Cambios" : "Crear Usuario"}
               </>
             )}
           </button>

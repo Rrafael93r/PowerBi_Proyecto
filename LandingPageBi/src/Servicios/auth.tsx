@@ -12,7 +12,12 @@ export interface Usuario {
     name: string
     description: string
   }
-  area: {
+  areas: {
+    id: number
+    name: string
+    description: string
+  }[]
+  areaPrincipal?: {
     id: number
     name: string
     description: string
@@ -29,13 +34,15 @@ export interface LoginResponse {
   usuario: Usuario
 }
 
+import { API_BASE_URL, getAuthHeaders, getPublicHeaders } from "../config/api"
+
 // Funciones de autenticación
 export const authService = {
   // Login
   async login(usuario: string, contrasena: string): Promise<LoginResponse> {
-    const response = await fetch("http://localhost:3333/login", {
+    const response = await fetch(`${API_BASE_URL}/login`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getPublicHeaders(),
       body: JSON.stringify({ usuario, contrasena }),
     })
 
@@ -59,15 +66,12 @@ export const authService = {
 
     if (token) {
       try {
-        await fetch("http://localhost:3333/logout", {
+        await fetch(`${API_BASE_URL}/logout`, {
           method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
+          headers: getAuthHeaders(),
         })
       } catch (error) {
-  
+
       }
     }
 
@@ -102,7 +106,8 @@ export const authService = {
   // Verificar área
   hasArea(areaName: string): boolean {
     const user = this.getCurrentUser()
-    return !!(user && user.area && user.area.name && user.area.name.toLowerCase().includes(areaName.toLowerCase()))
+    if (!user || !user.areas) return false
+    return user.areas.some(area => area.name.toLowerCase().includes(areaName.toLowerCase()))
   },
 
   // Request autenticado
@@ -113,12 +118,14 @@ export const authService = {
       throw new Error("No hay token de autenticación")
     }
 
-    const response = await fetch(url, {
+    // Determine if url is absolute or relative
+    const fullUrl = url.startsWith("http") ? url : `${API_BASE_URL}${url.startsWith("/") ? "" : "/"}${url}`
+
+    const response = await fetch(fullUrl, {
       ...options,
       headers: {
         ...options.headers,
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
+        ...getAuthHeaders()
       },
     })
 

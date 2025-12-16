@@ -29,12 +29,6 @@ const ProtectedRoute = ({ children, requiredRole, requiredArea }: ProtectedRoute
             return
         }
 
-        // Verificar área si es requerida
-        if (requiredArea && !authService.hasArea(requiredArea)) {
-            alert("No tienes acceso a esta área")
-            navigate("/seleccion-area", { replace: true })
-            return
-        }
     }, [navigate, requiredRole, requiredArea])
 
     // Solo renderizar si está autenticado

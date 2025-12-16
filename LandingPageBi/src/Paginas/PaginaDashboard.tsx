@@ -1,4 +1,4 @@
-import Dasboard from '../Componentes/dashboards'
+import Dasboard from '../Componentes/dashboardstic'
 
 const PaginaDashboard = () => {
     return (

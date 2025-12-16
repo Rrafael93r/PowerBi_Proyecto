@@ -14,7 +14,8 @@ export default class AuthController {
       const user = await Usuario.query()
         .where("usuario", usuario)
         .preload("role")
-        .preload("area")
+        .preload("areas")
+        .preload("areaPrincipal")
         .preload("estado")
         .first()
 
@@ -43,7 +44,8 @@ export default class AuthController {
           correo: user.correo,
           usuario: user.usuario,
           role: user.role,
-          area: user.area,
+          areaPrincipal: user.areaPrincipal,
+          areas: user.areas,
           estado: user.estado,
         },
       })
@@ -87,7 +89,8 @@ export default class AuthController {
       const user = await Usuario.query()
         .where("id", authUser.id)
         .preload("role")
-        .preload("area")
+        .preload("areas")
+        .preload("areaPrincipal")
         .preload("estado")
         .firstOrFail()
 
@@ -101,7 +104,8 @@ export default class AuthController {
           correo: user.correo,
           usuario: user.usuario,
           role: user.role,
-          area: user.area,
+          areaPrincipal: user.areaPrincipal,
+          areas: user.areas,
           estado: user.estado,
         },
       })
